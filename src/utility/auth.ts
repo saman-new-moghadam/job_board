@@ -42,7 +42,27 @@ export async function getAuthenticatedUser() {
   };
 }
 
-export async function requireRole(requiredRole: "JOB_SEEKER" | "EMPLOYER") {
+export type User = {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: "JOB_SEEKER" | "EMPLOYER";
+};
+
+type RequireRoleResult =
+  | {
+      authorized: false;
+      reason: "UNAUTHENTICATED" | "FORBIDDEN";
+    }
+  | {
+      authorized: true;
+      user: User;
+    };
+
+export async function requireRole(
+  requiredRole: "JOB_SEEKER" | "EMPLOYER",
+): Promise<RequireRoleResult> {
   const user = await getAuthenticatedUser();
 
   if (!user) {
