@@ -1,6 +1,6 @@
 const JobsPage = () => {
-    return ( <div>
-        <h1>Jobs</h1>
+    return ( <div className="custom-container mt-5!">
+        hello jobs.
     </div> );
 }
  

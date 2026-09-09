@@ -45,6 +45,7 @@ model Job {
   employer User @relation(fields: [employerId], references: [id])
   applications Application[]
   createdAt DateTime @default(now())
+  imageKey String?
 }
 
 enum JobStatus {
@@ -57,7 +58,7 @@ model Application {
   userId Int 
   jobId Int 
   coverLetter String
-  resume String
+  resumeKey String
   status ApplicationStatus @default(PENDING)
   createdAt DateTime @default(now())
   user User @relation(fields: [userId], references: [id]) 
