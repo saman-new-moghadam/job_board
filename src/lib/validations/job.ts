@@ -67,6 +67,8 @@ export const jobSchema = z
     path: ["maxSalary"],
   });
 
+
+
 export const jobUpdateSchema = z.object({
   location: z.string("").trim().min(1, "location field is required").optional(),
   description: z

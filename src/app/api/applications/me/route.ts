@@ -1,3 +1,5 @@
+// api/applications/me/route.ts
+
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/utility/auth";
 

@@ -1,7 +1,9 @@
 // api/jobs/[id]/route.ts
 
+import { JobStatus } from "@/generated/prisma/enums";
+import { preSignedFile } from "@/lib/b2";
 import { prisma } from "@/lib/prisma";
-import { jobSchema, jobUpdateSchema } from "@/lib/validations/job";
+import { jobUpdateSchema } from "@/lib/validations/job";
 import { requireRole } from "@/utility/auth";
 
 export async function GET(
@@ -25,7 +27,24 @@ export async function GET(
       return Response.json({ error: "job not found" }, { status: 404 });
     }
 
-    return Response.json({ data: response });
+    let result: {
+    imageUrl: null | string;
+    status: JobStatus;
+    id: number;
+    title: string;
+    description: string;
+    location: string;
+    minSalary: number;
+    maxSalary: number;
+    employerId: number;
+    createdAt: Date;
+    imageKey: string | null;
+} = { ...response, imageUrl: null   };
+
+    if (response.imageKey)
+      result = { ...result, imageUrl: await preSignedFile(response.imageKey) };
+
+    return Response.json({ data: result });
   } catch {
     return Response.json({ error: "something went wrong" }, { status: 500 });
   }
@@ -59,6 +78,10 @@ export async function PATCH(
     return Response.json({ error: result.reason }, { status: 403 });
   }
 
+  if (!result.authorized) {
+    return Response.json({ error: result.reason }, { status: 401 });
+  }
+
   const job = await prisma.job.findUnique({
     where: {
       id: Number(id),
@@ -69,7 +92,7 @@ export async function PATCH(
     return Response.json({ error: "cant find this job" }, { status: 404 });
   }
 
-  if (result.user?.id !== job?.employerId) {
+  if (result.user.id !== job?.employerId) {
     return Response.json(
       { error: "you are not permited to edit this job" },
       { status: 403 },
@@ -77,7 +100,6 @@ export async function PATCH(
   }
 
   const schemaResult = jobUpdateSchema.safeParse(body);
-
 
   if (!schemaResult.success) {
     return Response.json({ error: schemaResult.error }, { status: 400 });

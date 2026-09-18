@@ -4,9 +4,11 @@ import {
   JobOrderByWithRelationInput,
   JobWhereInput,
 } from "@/generated/prisma/models";
+import { preSignedFile, uploadFile } from "@/lib/b2";
 import { prisma } from "@/lib/prisma";
 import { jobUrlSchema, jobSchema } from "@/lib/validations/job";
 import { requireRole } from "@/utility/auth";
+import { randomUUID } from "crypto";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -74,7 +76,7 @@ export async function GET(request: Request) {
       minSalary: !maxSalary
         ? undefined
         : {
-            lte: maxSalary ,
+            lte: maxSalary,
           },
       maxSalary: !minSalary
         ? undefined
@@ -94,8 +96,17 @@ export async function GET(request: Request) {
     take: limit,
     orderBy: sortedObj,
   });
+
+  const newArr = response.map(async (job) => {
+    if (job.imageKey)
+      return { ...job, imageUrl: await preSignedFile(job.imageKey) };
+    return { ...job, imageUrl: null };
+  });
+
+  const result = await Promise.all(newArr);
+
   return Response.json({
-    data: response,
+    data: result,
     page: page,
     totalPages: Math.ceil(total / limit),
     total: total,
@@ -107,21 +118,73 @@ export async function POST(request: Request) {
   const user = await requireRole("EMPLOYER");
   if (user.authorized === false && user.reason == "UNAUTHENTICATED") {
     return Response.json({ error: "Authentication required" }, { status: 401 });
-  }
-
-  if (user.authorized === false && user.reason === "FORBIDDEN") {
+  } else if (user.authorized === false && user.reason === "FORBIDDEN") {
     return Response.json({ error: "Forbidden" }, { status: 403 });
+  } else if (user.authorized === false) {
+    return Response.json({ error: "Authentication required" }, { status: 401 });
   }
 
   try {
-    const body = await request.json();
-    const schemaResult = jobSchema.safeParse(body);
+    const body = await request.formData();
+    const schemaResult = jobSchema.safeParse({
+      location: body.get("location"),
+      description: body.get("description"),
+      title: body.get("title"),
+      maxSalary: body.get("maxSalary"),
+      minSalary: body.get("minSalary"),
+    });
+
+    const image = body.get("image");
+    let imageFile: File | undefined;
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maximumSize = 5 * 1024 * 1024;
+
+    if (image) {
+      if (!(image instanceof File)) {
+        return Response.json(
+          { error: "image file is required." },
+          { status: 400 },
+        );
+      }
+      if (!allowedTypes.includes(image.type)) {
+        return Response.json(
+          { error: "image type is not a image type." },
+          { status: 400 },
+        );
+      }
+
+      if (image.size > maximumSize) {
+        return Response.json(
+          { error: "image size must be 5 mg or less." },
+          { status: 400 },
+        );
+      }
+
+      imageFile = image;
+    }
 
     if (!schemaResult.success) {
       return Response.json({ error: schemaResult.error }, { status: 400 });
     }
 
+    function findExtension(type: string) {
+      if (type === "image/jpeg") return "jpg";
+      else if (type === "image/png") return "png";
+      else return "webp";
+    }
+
     try {
+      let imageKey: string | undefined = undefined;
+
+      if (imageFile) {
+        const arrayBuffer = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const extension = findExtension(imageFile.type);
+        imageKey = `images/jobs/${user.user.id}/${randomUUID()}.${extension}`;
+
+        await uploadFile(buffer, imageKey, imageFile.type);
+      }
+
       const response = await prisma.job.create({
         data: {
           description: schemaResult.data.description,
@@ -129,7 +192,8 @@ export async function POST(request: Request) {
           maxSalary: schemaResult.data.maxSalary,
           minSalary: schemaResult.data.minSalary,
           title: schemaResult.data.title,
-          employerId: Number(user.user?.id),
+          employerId: Number(user.user.id),
+          imageKey: imageKey,
         },
       });
 
@@ -142,7 +206,7 @@ export async function POST(request: Request) {
     } catch {
       return Response.json({ error: "something went wrong." }, { status: 500 });
     }
-  } catch { 
-    return Response.json({ error: "invalid Json" }, { status: 400 });
+  } catch {
+    return Response.json({ error: "invalid FormData" }, { status: 400 });
   }
 }
