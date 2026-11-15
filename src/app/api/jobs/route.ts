@@ -1,8 +1,8 @@
 // api/jobs/route.ts
 
 import {
-  JobOrderByWithRelationInput,
-  JobWhereInput,
+  jobOrderByWithRelationInput,
+  jobWhereInput,
 } from "@/generated/prisma/models";
 import { preSignedFile, uploadFile } from "@/lib/b2";
 import { prisma } from "@/lib/prisma";
@@ -23,6 +23,8 @@ export async function GET(request: Request) {
     limit: searchParams.get("limit") || undefined,
   };
 
+  
+
   const schemaResult = jobUrlSchema.safeParse(myObj);
 
   if (!schemaResult.success) {
@@ -34,7 +36,7 @@ export async function GET(request: Request) {
   const { maxSalary, minSalary, limit, location, page, search, sort } =
     schemaResult.data;
 
-  function handleSort(): JobOrderByWithRelationInput | undefined {
+  function handleSort(): jobOrderByWithRelationInput | undefined {
     if (sort === "newest") {
       return {
         createdAt: "desc",
@@ -66,7 +68,7 @@ export async function GET(request: Request) {
 
   const skip = (page - 1) * limit;
 
-  const jobCondition: JobWhereInput = {
+  const jobCondition: jobWhereInput = {
     status: "OPEN",
     title: {
       contains: search,
@@ -95,6 +97,14 @@ export async function GET(request: Request) {
     skip: skip,
     take: limit,
     orderBy: sortedObj,
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
   });
 
   const newArr = response.map(async (job) => {
@@ -203,7 +213,9 @@ export async function POST(request: Request) {
         },
         { status: 201 },
       );
-    } catch {
+    } catch (error) {
+      console.log(error);
+
       return Response.json({ error: "something went wrong." }, { status: 500 });
     }
   } catch {

@@ -23,7 +23,7 @@ export function Logout() {
   };
 
   return (
-    <button onClick={handleLogout}>
+    <button className="cursor-pointer p-3 text-md bg-black text-white rounded-xl" onClick={handleLogout}>
       Logout
     </button>
   );

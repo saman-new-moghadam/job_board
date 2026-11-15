@@ -7,70 +7,75 @@ datasource db {
   provider = "mysql"
 }
 
-model User {
-  id           Int           @id @default(autoincrement())
-  firstName    String
-  lastName     String
-  email        String        @unique
-  password     String
-  role         Role
-  sessions     Session[]
-  jobs Job[]
-  applications Application[]
-  createdAt DateTime @default(now())
+model application {
+  id          Int                @id @default(autoincrement())
+  userId      Int
+  jobId       Int
+  coverLetter String
+  status      application_status @default(PENDING)
+  createdAt   DateTime           @default(now())
+  resumeKey   String
+  job         job                @relation(fields: [jobId], references: [id], map: "Application_jobId_fkey")
+  user        user               @relation(fields: [userId], references: [id], map: "Application_userId_fkey")
+
+  @@unique([jobId, userId], map: "Application_jobId_userId_key")
+  @@index([userId], map: "Application_userId_fkey")
 }
 
-enum Role {
-  JOB_SEEKER
-  EMPLOYER
+model job {
+  id          Int           @id @default(autoincrement())
+  title       String
+  description String
+  location    String
+  minSalary   Int
+  maxSalary   Int
+  status      job_status    @default(OPEN)
+  employerId  Int
+  createdAt   DateTime      @default(now())
+  imageKey    String?
+  application application[]
+  user        user          @relation(fields: [employerId], references: [id], map: "Job_employerId_fkey")
+
+  @@index([employerId], map: "Job_employerId_fkey")
 }
 
-model Session {
-  sessionId String @id
-  userId Int 
-  user User @relation(fields: [userId], references: [id])
+model session {
+  sessionId String   @id
+  userId    Int
   expiresAt DateTime
   createdAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], map: "Session_userId_fkey")
+
+  @@index([userId], map: "Session_userId_fkey")
 }
 
-model Job {
-  id Int @id @default(autoincrement())
-  title String 
-  description String
-  location String
-  minSalary Int
-  maxSalary Int
-  status JobStatus @default(OPEN)
-  employerId Int 
-  employer User @relation(fields: [employerId], references: [id])
-  applications Application[]
-  createdAt DateTime @default(now())
-  imageKey String?
+model user {
+  id          Int           @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String        @unique(map: "User_email_key")
+  password    String
+  role        user_role
+  createdAt   DateTime      @default(now())
+  application application[]
+  job         job[]
+  session     session[]
 }
 
-enum JobStatus {
-  OPEN
-  CLOSED
-}
-
-model Application {
-  id Int @id @default(autoincrement())
-  userId Int 
-  jobId Int 
-  coverLetter String
-  resumeKey String
-  status ApplicationStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id]) 
-  job Job @relation(fields: [jobId], references: [id])
-  
-
-  @@unique([jobId, userId])
-}
-
-enum ApplicationStatus {
+enum application_status {
   PENDING
   REVIEWING
   ACCEPTED
   REJECTED
+  CANCELLED
+}
+
+enum user_role {
+  JOB_SEEKER
+  EMPLOYER
+}
+
+enum job_status {
+  OPEN
+  CLOSED
 }
