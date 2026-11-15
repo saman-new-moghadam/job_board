@@ -80,13 +80,16 @@ export async function POST(
   });
 
   if (!schemaResult.success) {
-    return Response.json({ error: schemaResult.error }, { status: 400 });
+    const errorMessage = schemaResult.error.issues
+      .map((issue) => issue.message)
+      .join(", ");
+    return Response.json({ error: errorMessage }, { status: 400 });
   }
 
   try {
     const arrayBuffer = await resume.arrayBuffer();
 
-    const buffer = Buffer.from(arrayBuffer); 
+    const buffer = Buffer.from(arrayBuffer);
 
     const extension = resume.type === "application/pdf" ? "pdf" : "docx";
 
@@ -147,7 +150,7 @@ export async function GET(
         id: id,
       },
       include: {
-        applications: {
+        application: {
           select: {
             id: true,
             coverLetter: true,

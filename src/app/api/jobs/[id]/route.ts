@@ -1,6 +1,6 @@
 // api/jobs/[id]/route.ts
 
-import { JobStatus } from "@/generated/prisma/enums";
+import { job_status } from "@/generated/prisma/enums";
 import { preSignedFile } from "@/lib/b2";
 import { prisma } from "@/lib/prisma";
 import { jobUpdateSchema } from "@/lib/validations/job";
@@ -21,6 +21,14 @@ export async function GET(
       where: {
         id: id,
       },
+      include: {
+        user: {
+          select: {
+            firstName: true, 
+            lastName: true
+          } 
+        },
+      },
     });
 
     if (!response) {
@@ -28,18 +36,18 @@ export async function GET(
     }
 
     let result: {
-    imageUrl: null | string;
-    status: JobStatus;
-    id: number;
-    title: string;
-    description: string;
-    location: string;
-    minSalary: number;
-    maxSalary: number;
-    employerId: number;
-    createdAt: Date;
-    imageKey: string | null;
-} = { ...response, imageUrl: null   };
+      imageUrl: null | string;
+      status: job_status;
+      id: number;
+      title: string;
+      description: string;
+      location: string;
+      minSalary: number;
+      maxSalary: number;
+      employerId: number;
+      createdAt: Date;
+      imageKey: string | null;
+    } = { ...response, imageUrl: null };
 
     if (response.imageKey)
       result = { ...result, imageUrl: await preSignedFile(response.imageKey) };

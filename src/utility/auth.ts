@@ -1,9 +1,21 @@
 // src/utility/auth.ts
 
+import "server-only";
+
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
-export async function getAuthenticatedUser() {
+export type User = {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: "JOB_SEEKER" | "EMPLOYER";
+};
+
+
+export const getAuthenticatedUser = cache(async (): Promise<User | null> => {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get("sessionId");
   if (!sessionId) return null;
@@ -40,15 +52,8 @@ export async function getAuthenticatedUser() {
     lastName: data.user.lastName,
     role: data.user.role,
   };
-}
+});
 
-export type User = {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: "JOB_SEEKER" | "EMPLOYER";
-};
 
 type RequireRoleResult =
   | {

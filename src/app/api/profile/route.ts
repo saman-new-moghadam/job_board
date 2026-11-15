@@ -1,4 +1,4 @@
-// api/profile/route.ts
+// api/profile
 
 import { getAuthenticatedUser } from "@/utility/auth";
 
