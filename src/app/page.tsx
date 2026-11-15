@@ -1,6 +1,21 @@
 import { getAuthenticatedUser } from "@/utility/auth";
 import Link from "next/link";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Find Your Next Career Opportunity",
+  description:
+    "Explore job opportunities, discover companies, and connect with employers. Find the right job for your skills and career goals with Job Board.",
+
+  openGraph: {
+    title: "Find Your Next Career Opportunity | Job Board",
+    description:
+      "Discover job opportunities and take the next step in your career with Job Board.",
+    url: "/",
+  },
+};
+
 export default async function Home() {
   const user = await getAuthenticatedUser();
   return (

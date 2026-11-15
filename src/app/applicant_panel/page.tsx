@@ -4,6 +4,26 @@ import { requireRole } from "@/utility/auth";
 import { redirect } from "next/navigation";
 import DeleteApplication from "../components/applicant_panel/delete_application";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Applicant Dashboard",
+  description:
+    "Track your job applications, check application statuses, manage your resumes, and stay updated on your career opportunities.",
+
+  robots: {
+    index: false,
+    follow: false,
+  },
+
+  openGraph: {
+    title: "Applicant Dashboard | Job Board",
+    description:
+      "Manage and track all your job applications from your personal Job Board dashboard.",
+    url: "/applicant_panel",
+  },
+};
+
 const ApplicantPanel = async () => {
   const user = await requireRole("JOB_SEEKER");
 

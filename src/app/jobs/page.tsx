@@ -20,6 +20,22 @@ type Props = {
   }>;
 };
 
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Browse Jobs",
+  description:
+    "Explore the latest job opportunities, search by location, filter by salary, and find positions that match your skills and career goals.",
+
+  openGraph: {
+    title: "Browse Jobs | Job Board",
+    description:
+      "Discover job opportunities across different locations and industries. Find your next career opportunity with Job Board.",
+    url: "/jobs",
+  },
+};
+
 const JobsPage = async ({ searchParams }: Props) => {
   const { search, page, location, sort, minSalary, maxSalary } =
     await searchParams;

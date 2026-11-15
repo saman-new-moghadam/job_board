@@ -5,6 +5,26 @@ import EmployerJob from "../components/employer_panel/employer_job";
 import { preSignedFile } from "@/lib/b2";
 import CreateJobComponent from "../components/employer_panel/createJob";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Employer Dashboard",
+  description:
+    "Manage your job postings, track applications, and monitor your hiring activity from your Job Board employer dashboard.",
+
+  robots: {
+    index: false,
+    follow: false,
+  },
+
+  openGraph: {
+    title: "Employer Dashboard | Job Board",
+    description:
+      "Manage job postings and applications with your Job Board employer account.",
+    url: "/employer_panel",
+  },
+};
+
 const EmployerPanel = async () => {
   const require_role = await requireRole("EMPLOYER");
 
