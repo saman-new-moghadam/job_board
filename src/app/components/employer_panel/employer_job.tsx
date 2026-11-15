@@ -141,10 +141,10 @@ const EmployerJob = ({ job }: { job: Job }) => {
               <p className="text-sm text-slate-500 mt-1">{job.location}</p>
             </div>
 
-            <div className="shrink-0 bg-blue-50 text-blue-700 rounded-xl px-3 py-2 text-center">
+            <Link href={`employer_panel/${job.id}/applications`} className="shrink-0 bg-blue-50 text-blue-700 rounded-xl px-3 py-2 text-center">
               <p className="text-lg font-bold">{job.application.length}</p>
               <p className="text-xs">Applicants</p>
-            </div>
+            </Link>
           </div>
 
           <div className="bg-slate-50 rounded-xl p-3 mb-5">

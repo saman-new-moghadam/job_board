@@ -30,6 +30,7 @@ const JobsPage = async ({ searchParams }: Props) => {
       : "http://localhost:3000/api/jobs",
   );
 
+
   if (search) baseUrl.searchParams.set("search", search);
   if (page) baseUrl.searchParams.set("page", page);
   if (sort) baseUrl.searchParams.set("sort", sort);

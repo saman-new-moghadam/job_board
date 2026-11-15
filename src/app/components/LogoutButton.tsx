@@ -16,7 +16,7 @@ export function Logout() {
         return;
       }
 
-      router.push("/login");
+      window.location.href = "/login"
     } catch {
       router.push("/");
     }

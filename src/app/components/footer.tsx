@@ -31,12 +31,23 @@ const Footer = async () => {
               </Link>
             </>
           )}
-          <Link
-            href="/employer_panel"
-            className="hover:text-blue-600 transition-colors"
-          >
-            For Employers
-          </Link>
+          {user?.role === "EMPLOYER" && (
+            <Link
+              href="/employer_panel"
+              className="hover:text-blue-600 transition-colors"
+            >
+              For Employers
+            </Link>
+          )}
+
+          {user?.role === "JOB_SEEKER" && (
+            <Link
+              href="/applicant_panel"
+              className="hover:text-blue-600 transition-colors"
+            >
+              For Job Seekers
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
